@@ -46,13 +46,9 @@ contract('Safemoon', (accounts) => {
     assert.equal(await SafemoonInstance.methods.totalSupply().call(), deployerTokenBalance);
   });
 
-  it('test addliquidity', async () => {
-    const numToAddliquidity = toWei('500');
-    // await SafemoonInstance.methods.approve(PancakeRouterAddress, numToAddliquidity);
-      // .send({ from: deployer });
-    // const approved = await SafemoonInstance.methods.allowance(deployer, PancakeRouterAddress).call();
-    // console.log("approved", approved);
-    await SafemoonInstance.methods.approve(PancakeRouterAddress, toWei('1500')).send({from: deployer});
+  it('addliquidity() can be triggered once', async () => {
+    const numToAddliquidity = toWei('500');  // reset to match the contract
+    await SafemoonInstance.methods.approve(PancakeRouterAddress, toWei('100000000000000000000000')).send({from: deployer}); //approve
     await PancakeRouterInstance.methods.addLiquidityETH(SafemoonAddress, toWei('500'), 0, 0, SafemoonAddress, 2639271011)
       .send({ from: deployer, value: toWei('300'), gas: 1200000000 }); // 300 ether
 
@@ -75,6 +71,40 @@ contract('Safemoon', (accounts) => {
     assert.equal((contractSafemoonBalance0 - contractSafemoonBalance1).toString(), numToAddliquidity);
   });
 
+  it('addLiquidity() can be triggered 10 times', async () => {
+    const numToAddliquidityinBNB = 500;
+    const numToAddliquidity = toWei(numToAddliquidityinBNB.toString());  // min number to add liquidity (update it to match the contract)
+    await SafemoonInstance.methods.approve(PancakeRouterAddress, toWei('100000000000000')).send({from: deployer}); // approve
+    await PancakeRouterInstance.methods.addLiquidityETH(SafemoonAddress, numToAddliquidity, 0, 0, SafemoonAddress, 2639271011)
+      .send({ from: deployer, value: toWei('300'), gas: 1200000000 }); // add LiquidityETH 300 ether
+
+    // transfer 15 * numToAddliquidity tokens to SafemoonAddress
+    await SafemoonInstance.methods.transfer(SafemoonAddress, toWei((15 * numToAddliquidityinBNB).toString()))
+      .send({from: deployer, gas: 1200000000});
+
+    // balances before each addLiquidity()
+    let pairSafemoonBalance0;
+    let contractSafemoonBalance0;
+    // balances after each addLiquidity()
+    let pairSafemoonBalance1;
+    let contractSafemoonBalance1;
+
+    for (let i = 0; i < 10; i++) {
+      pairSafemoonBalance0 = await balanceOf(SafemoonInstance, PairAddress);
+      contractSafemoonBalance0 = await balanceOf(SafemoonInstance, SafemoonAddress);
+  
+      // trigger auto addLiquidity
+      await SafemoonInstance.methods.transfer(accounts[1], 500)
+        .send({from: deployer, gas: 1200000000});
+      
+      pairSafemoonBalance1 = await balanceOf(SafemoonInstance, PairAddress);
+      contractSafemoonBalance1 = await balanceOf(SafemoonInstance, SafemoonAddress);
+  
+      assert.equal((pairSafemoonBalance1 - pairSafemoonBalance0).toString(), numToAddliquidity);
+      assert.equal((contractSafemoonBalance0 - contractSafemoonBalance1).toString(), numToAddliquidity);
+    }
+  });
+
 
   it('Contract can receive BNB', async () => {
     const sender = accounts[1];
@@ -86,6 +116,8 @@ contract('Safemoon', (accounts) => {
     const contractBNB1 = await getBalanceBNB(SafemoonAddress);
     assert.equal(fromWei((contractBNB1 - contractBNB0).toString()), '10');
   });
+
+
 
 });
 
