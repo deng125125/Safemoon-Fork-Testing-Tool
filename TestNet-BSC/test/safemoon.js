@@ -47,7 +47,7 @@ contract('Safemoon', (accounts) => {
   });
 
   it('test addliquidity', async () => {
-    const numToAddliquidity = await toWei('500');
+    const numToAddliquidity = toWei('500');
     // await SafemoonInstance.methods.approve(PancakeRouterAddress, numToAddliquidity);
       // .send({ from: deployer });
     // const approved = await SafemoonInstance.methods.allowance(deployer, PancakeRouterAddress).call();
@@ -56,7 +56,7 @@ contract('Safemoon', (accounts) => {
     await PancakeRouterInstance.methods.addLiquidityETH(SafemoonAddress, toWei('500'), 0, 0, SafemoonAddress, 2639271011)
       .send({ from: deployer, value: toWei('300'), gas: 1200000000 }); // 300 ether
 
-    await SafemoonInstance.methods.transfer(SafemoonAddress, await toWei('1500'))
+    await SafemoonInstance.methods.transfer(SafemoonAddress, toWei('1500'))
       .send({from: deployer, gas: 1200000000});
     
     // balances before auto addLiquidity 
@@ -74,7 +74,24 @@ contract('Safemoon', (accounts) => {
     assert.equal((pairSafemoonBalance1 - pairSafemoonBalance0).toString(), numToAddliquidity);
     assert.equal((contractSafemoonBalance0 - contractSafemoonBalance1).toString(), numToAddliquidity);
   });
+
+
+  it('Contract can receive BNB', async () => {
+    const sender = accounts[1];
+    const senderBNB0 = await getBalanceBNB(sender);
+    const contractBNB0 = await getBalanceBNB(SafemoonAddress);
+    // send bnb
+    await web3.eth.sendTransaction({from: sender, to: SafemoonAddress, value: toWei('10')});
+    const senderBNB1 = await getBalanceBNB(sender);
+    const contractBNB1 = await getBalanceBNB(SafemoonAddress);
+    assert.equal(fromWei((contractBNB1 - contractBNB0).toString()), '10');
+  });
+
 });
+
+const getBalanceBNB = (address) => {
+  return web3.eth.getBalance(address);
+}
 
 const balanceOf = (instance, address) => {
   return instance.methods.balanceOf(address).call();
@@ -82,4 +99,8 @@ const balanceOf = (instance, address) => {
 
 const toWei = (numString) => {
   return web3.utils.toWei(numString, 'ether');
+}
+
+const fromWei = (numString) => {
+  return web3.utils.fromWei(numString, 'ether');
 }
