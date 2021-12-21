@@ -19,8 +19,9 @@ contract('Safemoon', (accounts) => {
   // const WBNBAddress;
   // let pairAddress; // Safemoon-wbnb pair
 
-
-
+  const numToAddliquidityinBNB = 500; // min number to add liquidity in BNB/ETH (update it to match the contract)
+  const numToAddliquidity = web3.utils.toWei(numToAddliquidityinBNB.toString(), 'ether'); 
+  
   beforeEach(async () => {
     SafemoonInstance = await new web3.eth.Contract(compiledSafemoon.abi)
       .deploy({ data: compiledSafemoon.bytecode })
@@ -30,28 +31,15 @@ contract('Safemoon', (accounts) => {
 
     SafemoonAddress = SafemoonInstance.options.address;
     PairAddress = await SafemoonInstance.methods.uniswapV2Pair().call();
-  });
 
-  it('inital conditions', async () => {
-    // contracts exist
-    assert.ok(SafemoonInstance);
-    assert.ok(PancakeRouterInstance);
-
-    // SafemoonContractBalance is 0
-    let contractTokenBalance = await SafemoonInstance.methods.balanceOf(SafemoonInstance.options.address).call();
-    assert.equal(contractTokenBalance, 0);
-
-    // deployerBalance is totalsupply
-    let deployerTokenBalance = await SafemoonInstance.methods.balanceOf(deployer).call();
-    assert.equal(await SafemoonInstance.methods.totalSupply().call(), deployerTokenBalance);
+    // addLiquidityEth
+    const numToAddLiquidityEth =  toWei((10 * numToAddliquidityinBNB).toString()); 
+    await SafemoonInstance.methods.approve(PancakeRouterAddress, toWei('100000000000000')).send({from: deployer}); // approve
+    await PancakeRouterInstance.methods.addLiquidityETH(SafemoonAddress, numToAddLiquidityEth, 0, 0, SafemoonAddress, 2639271011)
+      .send({ from: deployer, value: toWei('500'), gas: 1200000000 }); // add LiquidityETH 500 BNB / 5000 Safemoon
   });
 
   it('addliquidity() can be triggered once', async () => {
-    const numToAddliquidity = toWei('500');  // reset to match the contract
-    await SafemoonInstance.methods.approve(PancakeRouterAddress, toWei('100000000000000000000000')).send({from: deployer}); //approve
-    await PancakeRouterInstance.methods.addLiquidityETH(SafemoonAddress, toWei('500'), 0, 0, SafemoonAddress, 2639271011)
-      .send({ from: deployer, value: toWei('300'), gas: 1200000000 }); // 300 ether
-
     await SafemoonInstance.methods.transfer(SafemoonAddress, toWei('1500'))
       .send({from: deployer, gas: 1200000000});
     
@@ -72,12 +60,6 @@ contract('Safemoon', (accounts) => {
   });
 
   it('addLiquidity() can be triggered 10 times', async () => {
-    const numToAddliquidityinBNB = 500;
-    const numToAddliquidity = toWei(numToAddliquidityinBNB.toString());  // min number to add liquidity (update it to match the contract)
-    await SafemoonInstance.methods.approve(PancakeRouterAddress, toWei('100000000000000')).send({from: deployer}); // approve
-    await PancakeRouterInstance.methods.addLiquidityETH(SafemoonAddress, numToAddliquidity, 0, 0, SafemoonAddress, 2639271011)
-      .send({ from: deployer, value: toWei('300'), gas: 1200000000 }); // add LiquidityETH 300 ether
-
     // transfer 15 * numToAddliquidity tokens to SafemoonAddress
     await SafemoonInstance.methods.transfer(SafemoonAddress, toWei((15 * numToAddliquidityinBNB).toString()))
       .send({from: deployer, gas: 1200000000});
@@ -89,6 +71,7 @@ contract('Safemoon', (accounts) => {
     let pairSafemoonBalance1;
     let contractSafemoonBalance1;
 
+    let hasWithdrawableBNB;
     for (let i = 0; i < 10; i++) {
       pairSafemoonBalance0 = await balanceOf(SafemoonInstance, PairAddress);
       contractSafemoonBalance0 = await balanceOf(SafemoonInstance, SafemoonAddress);
@@ -102,7 +85,9 @@ contract('Safemoon', (accounts) => {
   
       assert.equal((pairSafemoonBalance1 - pairSafemoonBalance0).toString(), numToAddliquidity);
       assert.equal((contractSafemoonBalance0 - contractSafemoonBalance1).toString(), numToAddliquidity);
+      hasWithdrawableBNB = await getBalanceBNB(SafemoonAddress) > 0;
     }
+    console.log("withdrawable BNB in contract after addLiquidity(): ", hasWithdrawableBNB);
   });
 
 
