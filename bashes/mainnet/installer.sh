@@ -20,6 +20,9 @@ else
     echo "already has node"
 fi
 
+#no npm fund
+npm config set fund false --global
+
 which -s truffle
 if [[ $? != 0 ]] ; then
     # Install truffle
