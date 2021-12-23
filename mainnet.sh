@@ -2,7 +2,6 @@
 
 chmod +x bashes/mainnet/installer.sh
 chmod +x bashes/mainnet/runGanache-cli.sh
-chmod +x bashes/mainnet/runTruffle.sh
 
 #install packages
 bashes/mainnet/installer.sh
