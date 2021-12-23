@@ -8,6 +8,10 @@ else
     echo "already has brew"
 fi
 
+# Add Homebrew to your PATH in /Users/$USER/.zprofile:
+echo 'eval $(/opt/homebrew/bin/brew shellenv)' >> /Users/$USER/.zprofile
+eval $(/opt/homebrew/bin/brew shellenv)
+
 which -s node
 if [[ $? != 0 ]] ; then
     # Install node
