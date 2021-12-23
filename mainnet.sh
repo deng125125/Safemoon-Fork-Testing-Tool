@@ -4,9 +4,15 @@ chmod +x bashes/mainnet/installer.sh
 chmod +x bashes/mainnet/runGanache-cli.sh
 chmod +x bashes/mainnet/runTruffle.sh
 
+#install packages
 bashes/mainnet/installer.sh
+
 # open a new Terminal tab
-osascript -e 'tell application "Terminal" to do script "Desktop/Projects/Safemoon\\ Fork\\ Testing\\ Tool/bashes/mainnet/runGanache-cli.sh"'
-sleep 8
-# open a new Terminal tab
-osascript -e 'tell application "Terminal" to do script "Desktop/Projects/Safemoon\\ Fork\\ Testing\\ Tool/bashes/mainnet/runTruffle.sh"' 
+osascript -e 'tell application "Terminal" to do script "'"'$(PWD)'"'/bashes/mainnet/runGanache-cli.sh"'
+sleep 7
+
+cd Mainnet-BSC
+
+truffle compile
+
+truffle test test/safemoon.js
