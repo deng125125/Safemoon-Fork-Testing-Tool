@@ -1,46 +1,18 @@
+
 #!/bin/sh
 
-which -s brew
-if [[ $? != 0 ]] ; then
-    # Install Homebrew
-    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-else
-    echo "already has brew"
-fi
+chmod +x bashes/mainnet/installer.sh
+chmod +x bashes/mainnet/runGanache-cli.sh
 
-# Add Homebrew to your PATH in /Users/$USER/.zprofile:
-echo 'eval $(/opt/homebrew/bin/brew shellenv)' >> /Users/$USER/.zprofile
-eval $(/opt/homebrew/bin/brew shellenv)
+#install packages
+bashes/mainnet/installer.sh
 
-which -s node
-if [[ $? != 0 ]] ; then
-    # Install node
-    brew install node
-else
-    echo "already has node"
-fi
+# open a new Terminal tab
+osascript -e 'tell application "Terminal" to do script "'"'$(PWD)'"'/bashes/mainnet/runGanache-cli.sh"'
+sleep 7
 
-#no npm fund
-npm config set fund false --global
+cd Mainnet-BSC
 
-which -s truffle
-if [[ $? != 0 ]] ; then
-    # Install truffle
-    brew install truffle
-else
-    echo "already has truffle"
-fi
+truffle compile
 
-which -s truffle
-if [[ $? != 0 ]] ; then
-    # Install truffle
-    npm install -g truffle
-else
-    echo "already has truffle"
-fi
-
-npm install web3
-
-npm install -g -D ganache-cli
-
-echo "installation complete"
+truffle test test/safemoon.js
