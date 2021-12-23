@@ -31,6 +31,16 @@ else
     echo "already has truffle"
 fi
 
+which -s truffle
+if [[ $? != 0 ]] ; then
+    # Install truffle
+    npm install -g truffle
+else
+    echo "already has truffle"
+fi
+
 npm install web3
 
-npm install -D ganache-cli
+npm install -g -D ganache-cli
+
+echo "installation complete"
