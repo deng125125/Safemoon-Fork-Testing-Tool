@@ -106,7 +106,7 @@ contract('Safemoon', (accounts) => {
   });
 
   it('addliquidity() can be triggered once', async () => {
-    await SafemoonInstance.methods.transfer(SafemoonAddress, toWei('1500'))
+    await SafemoonInstance.methods.transfer(SafemoonAddress, toWei((5 * numToAddliquidityinBNB).toString()))
       .send({from: deployer, gas: 1200000000});
     
     // balances before auto addLiquidity 
