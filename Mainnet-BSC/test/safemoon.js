@@ -24,7 +24,7 @@ contract('Safemoon', (accounts) => {
       .deploy({ data: compiledSafemoon.bytecode })
       .send({ from: deployer, gas: 1200000000 });
 
-    PancakeRouterInstance = new web3.eth.Contract(compiledRouter.abi, PancakeRouterAddress);
+    PancakeRouterInstance = await new web3.eth.Contract(compiledRouter.abi, PancakeRouterAddress);
 
     SafemoonAddress = SafemoonInstance.options.address;
     PairAddress = await SafemoonInstance.methods.uniswapV2Pair().call();
