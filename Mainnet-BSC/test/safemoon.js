@@ -16,6 +16,11 @@ contract('Safemoon', (accounts) => {
   let PairAddress;
   let WBNBAddress;
 
+  const reflectFeeRate = 4
+  const liquidityFeeRate = 4;
+  const marketingFeeRate = 0;
+  const burnFeeRate = 4;
+  
   const numToAddliquidityinBNB = 500; // min number to add liquidity in BNB/ETH (update it to match the contract)
   const numToAddliquidity = web3.utils.toWei(numToAddliquidityinBNB.toString(), 'ether'); 
   
@@ -39,8 +44,6 @@ contract('Safemoon', (accounts) => {
   });
 
   it('single transaction succeed', async () => {
-    let taxFee = await SafemoonInstance.methods._taxFee.call().call();
-    let liquidityFee = await SafemoonInstance.methods._liquidityFee.call().call();
     await SafemoonInstance.methods.transfer(accounts[2], toWei('100'))
       .send({from: deployer, gas: 1200000000});
     await SafemoonInstance.methods.transfer(accounts[4], toWei('100'))
@@ -62,14 +65,12 @@ contract('Safemoon', (accounts) => {
     const contractSafemoonBalance1 = await balanceOf(SafemoonInstance, SafemoonAddress);
 
     assert.equal(senderContractSafemoonBalance1, 0);//taxes are correctly deducted from sender
-    assert.ok(fromWei((receiverContractSafemoonBalance1 - receiverContractSafemoonBalance0).toString()) > (100 - taxFee - liquidityFee).toString());//receiver 
-    assert.ok(fromWei((contractSafemoonBalance1 - contractSafemoonBalance0).toString()) > taxFee.toString());//take liqudity fee
+    assert.ok(fromWei((receiverContractSafemoonBalance1 - receiverContractSafemoonBalance0).toString()) > (100 - reflectFeeRate - liquidityFeeRate - marketingFeeRate - burnFeeRate).toString());//receiver 
+    assert.ok(fromWei((contractSafemoonBalance1 - contractSafemoonBalance0).toString()) >= liquidityFeeRate.toString());//take liqudity fee
     assert.ok(holderContractSafemoonBalance0 < holderContractSafemoonBalance1);//check reflect
   });
 
   it('Token transfer succeed for 100 times', async () => {
-    let taxFee = await SafemoonInstance.methods._taxFee.call().call();
-    let liquidityFee = await SafemoonInstance.methods._liquidityFee.call().call();
     await SafemoonInstance.methods.transfer(accounts[2], toWei('100'))
       .send({from: deployer, gas: 1200000000});
     await SafemoonInstance.methods.transfer(accounts[4], toWei('100'))
@@ -99,8 +100,8 @@ contract('Safemoon', (accounts) => {
       contractSafemoonBalance1 = await balanceOf(SafemoonInstance, SafemoonAddress);
 
       //assert.equal(fromWei((senderContractSafemoonBalance0 - senderContractSafemoonBalance1).toString()), `1`);
-      assert.ok(fromWei(((receiverContractSafemoonBalance1 - receiverContractSafemoonBalance0) * 100).toString()) > (100 - taxFee - liquidityFee).toString());
-      assert.ok(fromWei(((contractSafemoonBalance1 - contractSafemoonBalance0) * 100).toString()) > taxFee.toString());
+      assert.ok(fromWei(((receiverContractSafemoonBalance1 - receiverContractSafemoonBalance0) * 100).toString()) > (100 - reflectFeeRate - liquidityFeeRate - marketingFeeRate - burnFeeRate).toString());
+      assert.ok(fromWei(((contractSafemoonBalance1 - contractSafemoonBalance0) * 100).toString()) >= liquidityFeeRate.toString());
       assert.ok(holderContractSafemoonBalance0 < holderContractSafemoonBalance1);
     }
   });
@@ -184,11 +185,6 @@ contract('Safemoon', (accounts) => {
     const path = new Array(WBNBAddress, SafemoonAddress);
     await PancakeRouterInstance.methods.swapETHForExactTokens(toWei(BuyTokenNumberinBNB.toString()), path, buyer, 2639271011)
       .send({from: buyer, value: toWei('1000'), gas: 12000000});
-
-    //buy feeRates to update
-    const liquidityFeeRate = 5;
-    const marketingFeeRate = 0;
-    const burnFeeRate = 5;
 
     const liquidityFeeinFinney = BuyTokenNumberinBNB * 1000 * liquidityFeeRate / 100;
     const marketingFeeinFinney = BuyTokenNumberinBNB * 1000 * marketingFeeRate / 100;
