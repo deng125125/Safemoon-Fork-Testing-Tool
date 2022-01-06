@@ -16,7 +16,7 @@ contract('Safemoon', (accounts) => {
   let PairAddress;
   let WBNBAddress;
 
-  const reflectFeeRate = 4
+  const reflectFeeRate = 4;
   const liquidityFeeRate = 4;
   const marketingFeeRate = 0;
   const burnFeeRate = 4;
