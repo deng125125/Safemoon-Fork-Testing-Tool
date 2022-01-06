@@ -16,10 +16,10 @@ contract('Safemoon', (accounts) => {
   let PairAddress;
   let WBNBAddress;
 
-  const reflectFeeRate = 4;
-  const liquidityFeeRate = 4;
+  const reflectFeeRate = 5;
+  const liquidityFeeRate = 5;
   const marketingFeeRate = 0;
-  const burnFeeRate = 4;
+  const burnFeeRate = 0;
   
   const numToAddliquidityinBNB = 500; // min number to add liquidity in BNB/ETH (update it to match the contract)
   const numToAddliquidity = web3.utils.toWei(numToAddliquidityinBNB.toString(), 'ether'); 
