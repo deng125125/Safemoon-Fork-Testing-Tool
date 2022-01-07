@@ -1,5 +1,6 @@
 
 #!/bin/sh
+opt=$1
 
 chmod +x bashes/mainnet/installer.sh
 chmod +x bashes/mainnet/runGanache-cli.sh
@@ -15,4 +16,12 @@ cd Mainnet-BSC
 
 truffle compile
 
-truffle test test/safemoon.js
+case $opt in
+        -r|-R )
+		truffle test test/reflect.js
+		;;
+	* )
+		truffle test test/safemoon.js
+		;;
+esac
+#truffle test test/safemoon.js
