@@ -1,5 +1,6 @@
 const compiledSafemoon = require("../build/contracts/Safemoon.json");
-const compiledERC20 = require("../build/contracts/IERC20.json");
+const compiledERC20 = require("../library/IERC20.json");
+
 
 const Web3 = require('web3');
 const rpcURL = "http://127.0.0.1:8545";
@@ -15,9 +16,9 @@ contract('Safemoon', (accounts) => {
   let PairAddress;
   let WBNBAddress;
 
-  const reflectFeeRate = 4
+  const reflectFeeRate = 5;
   const marketingFeeRate = 0;
-  const burnFeeRate = 4;
+  const burnFeeRate = 0;
   
   beforeEach(async () => {
     SafemoonInstance = await new web3.eth.Contract(compiledSafemoon.abi)

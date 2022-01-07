@@ -1,6 +1,6 @@
 const compiledSafemoon = require("../build/contracts/Safemoon.json");
-const compiledRouter = require("../build/contracts/IUniswapV2Router02.json");
-const compiledERC20 = require("../build/contracts/IERC20.json");
+const compiledRouter = require("../library/IUniswapV2Router02.json");
+const compiledERC20 = require("../library/IERC20.json");
 
 const Web3 = require('web3');
 const rpcURL = "http://127.0.0.1:8545";
