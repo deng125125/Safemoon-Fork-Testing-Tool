@@ -1,6 +1,6 @@
 const compiledSafemoon = require("../build/contracts/Safemoon.json");
 const compiledERC20 = require("../library/IERC20.json");
-
+const compiledRouter = require("../library/IUniswapV2Router02.json");
 
 const Web3 = require('web3');
 const rpcURL = "http://127.0.0.1:8545";
@@ -17,7 +17,7 @@ contract('Safemoon', (accounts) => {
   let WBNBAddress;
 
   const reflectFeeRate = 5;
-  const marketingFeeRate = 0;
+  const marketingFeeRate = 5;
   const burnFeeRate = 0;
   
   beforeEach(async () => {
@@ -58,8 +58,8 @@ contract('Safemoon', (accounts) => {
     const contractSafemoonBalance1 = await balanceOf(SafemoonInstance, SafemoonAddress);
 
     assert.equal(senderContractSafemoonBalance1, 0);//taxes are correctly deducted from sender
-    assert.ok(fromWei((receiverContractSafemoonBalance1 - receiverContractSafemoonBalance0).toString()) > (100 - reflectFeeRate - liquidityFeeRate - marketingFeeRate - burnFeeRate).toString());//receiver 
-    assert.ok(fromWei((contractSafemoonBalance1 - contractSafemoonBalance0).toString()) >= liquidityFeeRate.toString());//take liqudity fee
+    assert.ok(fromWei((receiverContractSafemoonBalance1 - receiverContractSafemoonBalance0).toString()) > (100 - reflectFeeRate - marketingFeeRate - burnFeeRate).toString());//receiver 
+    assert.ok(fromWei((contractSafemoonBalance1 - contractSafemoonBalance0).toString()) >= marketingFeeRate.toString());//take liqudity fee
     assert.ok(holderContractSafemoonBalance0 < holderContractSafemoonBalance1);//check reflect
   });
 
@@ -93,8 +93,8 @@ contract('Safemoon', (accounts) => {
       contractSafemoonBalance1 = await balanceOf(SafemoonInstance, SafemoonAddress);
 
       //assert.equal(fromWei((senderContractSafemoonBalance0 - senderContractSafemoonBalance1).toString()), `1`);
-      assert.ok(fromWei(((receiverContractSafemoonBalance1 - receiverContractSafemoonBalance0) * 100).toString()) > (100 - reflectFeeRate - liquidityFeeRate - marketingFeeRate - burnFeeRate).toString());
-      assert.ok(fromWei(((contractSafemoonBalance1 - contractSafemoonBalance0) * 100).toString()) >= liquidityFeeRate.toString());
+      assert.ok(fromWei(((receiverContractSafemoonBalance1 - receiverContractSafemoonBalance0) * 100).toString()) > (100 - reflectFeeRate - marketingFeeRate - burnFeeRate).toString());
+      assert.ok(fromWei(((contractSafemoonBalance1 - contractSafemoonBalance0) * 100).toString()) >= marketingFeeRate.toString());
       assert.ok(holderContractSafemoonBalance0 < holderContractSafemoonBalance1);
     }
   });
