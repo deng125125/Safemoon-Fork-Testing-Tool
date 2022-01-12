@@ -17,12 +17,12 @@ contract('Safemoon', (accounts) => {
   let PairAddress;
   let WBNBAddress;
 
-  const reflectFeeRate = 2;
-  const liquidityFeeRate = 2;
-  const marketingFeeRate = 2;
+  const reflectFeeRate = 5;
+  const liquidityFeeRate = 5;
+  const marketingFeeRate = 0;
   const burnFeeRate = 0;
   
-  const numToAddliquidityinFinney = 1000; // min number to add liquidity in BNB/ETH (update it to match the contract)
+  const numToAddliquidityinFinney = 500000; // min number to add liquidity in BNB/ETH (update it to match the contract)
   let numToAddliquidity;
   
   beforeEach(async () => {
