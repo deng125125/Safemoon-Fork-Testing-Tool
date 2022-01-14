@@ -102,9 +102,9 @@ contract('Safemoon', (accounts) => {
       contractSafemoonBalance1 = await balanceOf(SafemoonInstance, SafemoonAddress);
 
       //assert.equal(fromWeiToFinney((senderContractSafemoonBalance0 - senderContractSafemoonBalance1).toString()), `1`);
-      assert.ok(fromWeiToFinney(((receiverContractSafemoonBalance1 - receiverContractSafemoonBalance0) * 100).toString()) > (100 - reflectFeeRate - liquidityFeeRate - marketingFeeRate - burnFeeRate).toString());
-      assert.ok(fromWeiToFinney(((contractSafemoonBalance1 - contractSafemoonBalance0) * 100).toString()) >= liquidityFeeRate.toString());
-      assert.ok(holderContractSafemoonBalance0 < holderContractSafemoonBalance1);
+      assert.ok(fromWeiToFinney(((receiverContractSafemoonBalance1 - receiverContractSafemoonBalance0) * 100).toString()) > (100 - reflectFeeRate - liquidityFeeRate - marketingFeeRate - burnFeeRate).toString(),'receiver doesnt get enough fund from tx');
+      assert.ok(fromWeiToFinney(((contractSafemoonBalance1 - contractSafemoonBalance0) * 100).toString()) >= liquidityFeeRate.toString(),'Safemoon contract doesnt get enough liquidityFee');
+      assert.ok((holderContractSafemoonBalance0 < holderContractSafemoonBalance1),'holder doesnt receive reflection');
     }
   });
 
