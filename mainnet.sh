@@ -20,6 +20,9 @@ case $opt in
         -r|-R )
 		truffle test test/reflect.js
 		;;
+	-d|-D )
+		truffle test test/dividend.js
+		;;
 	* )
 		truffle test test/safemoon.js
 		;;
