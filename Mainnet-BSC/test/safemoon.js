@@ -66,7 +66,7 @@ contract('Safemoon', (accounts) => {
     const holderContractSafemoonBalance1 = await balanceOf(SafemoonInstance, accounts[4]); 
     const contractSafemoonBalance1 = await balanceOf(SafemoonInstance, SafemoonAddress);
 
-    assert.equal(senderContractSafemoonBalance1, 0);//taxes are correctly deducted from sender
+    assert.equal(senderContractSafemoonBalance1, 0, "taxes are not correctly deducted from sender");//taxes are correctly deducted from sender
     assert.ok(fromWeiToFinney((receiverContractSafemoonBalance1 - receiverContractSafemoonBalance0).toString()) > (100 - reflectFeeRate - liquidityFeeRate - marketingFeeRate - burnFeeRate).toString(),'receiver doesnt get enough fund from tx');//receiver 
     assert.ok(fromWeiToFinney((contractSafemoonBalance1 - contractSafemoonBalance0).toString()) >= liquidityFeeRate.toString(),'Safemoon contract doesnt get enough liquidityFee');//take liqudity fee
     assert.ok((holderContractSafemoonBalance0 < holderContractSafemoonBalance1),'holder doesnt receive reflection');//check reflect
