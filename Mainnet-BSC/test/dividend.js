@@ -2,6 +2,7 @@ const compiledSafemoon = require("../build/contracts/Safemoon.json");
 const compiledERC20 = require("../library/IERC20.json");
 const compiledFactory = require("../library/IPancakeFactory.json");
 const compiledRouter = require("../library/IUniswapV2Router02.json");
+const Safemoon = artifacts.require("Safemoon");
 
 const Web3 = require('web3');
 const rpcURL = "http://127.0.0.1:8545";
@@ -20,7 +21,7 @@ contract('Safemoon', (accounts) => {
     // const marketingFeeRate = 5;
     // const dividendFeeRate = 5;
     // const burnFeeRate = 0;
-    const totalFeeRates = 13;
+    const totalFeeRates = 15;
     
     const swapTokensAtAmount = 10000000; // min number to add liquidity in BNB/ETH (update it to match the contract)
     let numToAddliquidity;
@@ -28,21 +29,23 @@ contract('Safemoon', (accounts) => {
     const numToAddliquidityinFinney = 10000; // min number to add liquidity in BNB/ETH (update it to match the contract)
 
     beforeEach(async () => {
-        SafemoonInstance = await new web3.eth.Contract(compiledSafemoon.abi)
-        .deploy({ data: compiledSafemoon.bytecode })
-        .send({ from: deployer, gas: 1200000000 });
+		SafemoonInstance = await Safemoon.deployed();
+		SafemoonAddress = SafemoonInstance.address;
+		SafemoonInstance = await new web3.eth.Contract(compiledSafemoon.abi, SafemoonAddress);
+
+        // SafemoonInstance = await new web3.eth.Contract(abi)
+        // .deploy({ data: bytecode })
+        // .send({ from: deployer, gas: 1000000000000 });
       
         PancakeRouterInstance = await new web3.eth.Contract(compiledRouter.abi, PancakeRouterAddress);
         const factoryAddress = await PancakeRouterInstance.methods.factory().call();
         const factoryInstance = await new web3.eth.Contract(compiledFactory.abi, factoryAddress);
-
-        SafemoonAddress = SafemoonInstance.options.address;
         WBNBAddress = await PancakeRouterInstance.methods.WETH().call();
         PairAddress = await factoryInstance.methods.getPair(SafemoonAddress, WBNBAddress).call();
 
-        // addLiquidityEth
-        numToAddliquidity = toWei(numToAddliquidityinFinney.toString());
-        await SafemoonInstance.methods.approve(PancakeRouterAddress, toWei('100000000000000')).send({from: deployer}); // approve
+        // // addLiquidityEth
+        // numToAddliquidity = toWei(numToAddliquidityinFinney.toString());
+        // await SafemoonInstance.methods.approve(PancakeRouterAddress, toWei('100000000000000')).send({from: deployer}); // approve
         // await PancakeRouterInstance.methods.addLiquidityETH(SafemoonAddress, numToAddliquidity, 0, 0, SafemoonAddress, 2639271011)
         //     .send({ from: deployer, value: toWei('500'), gas: 1200000000 }); // add LiquidityETH 500 BNB / 5000 Safemoon
     });
@@ -123,7 +126,7 @@ contract('Safemoon', (accounts) => {
         await web3.eth.sendTransaction({from: sender, to: SafemoonAddress, value: toWei('10')});
         const senderBNB1 = await getBalanceBNB(sender);
         const contractBNB1 = await getBalanceBNB(SafemoonAddress);
-        assert.equal(fromWeiToFinney((contractBNB1 - contractBNB0).toString()), '10', "contract doesn't receive 10 BNB");
+        assert.equal(fromWeiToFinney((contractBNB1 - contractBNB0).toString()), '10');
       });
 });
 
@@ -131,22 +134,22 @@ const getBalanceBNB = (address) => {
     return web3.eth.getBalance(address);
   }
   
-  const balanceOf = (instance, address) => {
-    return instance.methods.balanceOf(address).call();
-  }
-  
-  const toWei = (numString) => {
-    return web3.utils.toWei(numString, 'finney');
-  }
-  
-  const fromWeiToSzabo = (numString) => {
-    return web3.utils.fromWei(numString, 'szabo');
-  }
-  
-  const fromWeiToFinney = (numString) => {
-    return web3.utils.fromWei(numString, 'finney');
-  }
-  
-  const toFinney = (numString) => {
-    return web3.utils.toWei(numString, 'finney');
-  }
+const balanceOf = (instance, address) => {
+	return instance.methods.balanceOf(address).call();
+}
+
+const toWei = (numString) => {
+	return web3.utils.toWei(numString, 'finney');
+}
+
+const fromWeiToSzabo = (numString) => {
+	return web3.utils.fromWei(numString, 'szabo');
+}
+
+const fromWeiToFinney = (numString) => {
+	return web3.utils.fromWei(numString, 'finney');
+}
+
+const toFinney = (numString) => {
+	return web3.utils.toWei(numString, 'finney');
+}
