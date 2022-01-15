@@ -123,7 +123,7 @@ contract('Safemoon', (accounts) => {
         await web3.eth.sendTransaction({from: sender, to: SafemoonAddress, value: toWei('10')});
         const senderBNB1 = await getBalanceBNB(sender);
         const contractBNB1 = await getBalanceBNB(SafemoonAddress);
-        assert.equal(fromWeiToFinney((contractBNB1 - contractBNB0).toString()), '10');
+        assert.equal(fromWeiToFinney((contractBNB1 - contractBNB0).toString()), '10', "contract doesn't receive 10 BNB");
       });
 });
 
