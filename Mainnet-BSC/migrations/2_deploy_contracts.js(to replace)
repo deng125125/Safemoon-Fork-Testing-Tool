@@ -1,0 +1,8 @@
+const Safemoon = artifacts.require('Safemoon');
+const IterableMapping = artifacts.require('IterableMapping');
+
+module.exports = function(deployer) {
+  deployer.deploy(IterableMapping);
+  deployer.link(IterableMapping, Safemoon);
+  deployer.deploy(Safemoon);
+}
