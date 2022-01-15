@@ -57,10 +57,10 @@ contract('Safemoon', (accounts) => {
     const holderContractSafemoonBalance1 = await balanceOf(SafemoonInstance, accounts[4]); 
     const contractSafemoonBalance1 = await balanceOf(SafemoonInstance, SafemoonAddress);
 
-    assert.equal(senderContractSafemoonBalance1, 0);//taxes are correctly deducted from sender
-    assert.ok(fromWei((receiverContractSafemoonBalance1 - receiverContractSafemoonBalance0).toString()) > (100 - reflectFeeRate - marketingFeeRate - burnFeeRate).toString());//receiver 
-    assert.ok(fromWei((contractSafemoonBalance1 - contractSafemoonBalance0).toString()) >= marketingFeeRate.toString());//take liqudity fee
-    assert.ok(holderContractSafemoonBalance0 < holderContractSafemoonBalance1);//check reflect
+    assert.equal(senderContractSafemoonBalance1, 0, "taxes are not correctly deducted from sender");//taxes are correctly deducted from sender
+    assert.ok(fromWei((receiverContractSafemoonBalance1 - receiverContractSafemoonBalance0).toString()) > (100 - reflectFeeRate - marketingFeeRate - burnFeeRate).toString(), 'receiver doesnt get enough fund from tx');//receiver 
+    assert.ok(fromWei((contractSafemoonBalance1 - contractSafemoonBalance0).toString()) >= marketingFeeRate.toString(), 'Safemoon contract doesnt get enough liquidityFee');//take liqudity fee
+    assert.ok(holderContractSafemoonBalance0 < holderContractSafemoonBalance1, 'holder doesnt receive reflection');//check reflect
   });
 
   it('Token transfer succeed for 100 times', async () => {
@@ -93,9 +93,9 @@ contract('Safemoon', (accounts) => {
       contractSafemoonBalance1 = await balanceOf(SafemoonInstance, SafemoonAddress);
 
       //assert.equal(fromWei((senderContractSafemoonBalance0 - senderContractSafemoonBalance1).toString()), `1`);
-      assert.ok(fromWei(((receiverContractSafemoonBalance1 - receiverContractSafemoonBalance0) * 100).toString()) > (100 - reflectFeeRate - marketingFeeRate - burnFeeRate).toString());
-      assert.ok(fromWei(((contractSafemoonBalance1 - contractSafemoonBalance0) * 100).toString()) >= marketingFeeRate.toString());
-      assert.ok(holderContractSafemoonBalance0 < holderContractSafemoonBalance1);
+      assert.ok(fromWei(((receiverContractSafemoonBalance1 - receiverContractSafemoonBalance0) * 100).toString()) > (100 - reflectFeeRate - marketingFeeRate - burnFeeRate).toString(), 'receiver doesnt get enough fund from tx');
+      assert.ok(fromWei(((contractSafemoonBalance1 - contractSafemoonBalance0) * 100).toString()) >= marketingFeeRate.toString(), 'Safemoon contract doesnt get enough liquidityFee');
+      assert.ok(holderContractSafemoonBalance0 < holderContractSafemoonBalance1, 'holder doesnt receive reflection');
     }
   });
 
@@ -108,7 +108,7 @@ contract('Safemoon', (accounts) => {
     await web3.eth.sendTransaction({from: sender, to: SafemoonAddress, value: toWei('10')});
     const senderBNB1 = await getBalanceBNB(sender);
     const contractBNB1 = await getBalanceBNB(SafemoonAddress);
-    assert.equal(fromWei((contractBNB1 - contractBNB0).toString()), '10');
+    assert.equal(fromWei((contractBNB1 - contractBNB0).toString()), '10', "contract doesn't receive 10 BNB");
   });
 
 
