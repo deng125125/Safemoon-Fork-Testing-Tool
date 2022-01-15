@@ -124,8 +124,8 @@ contract('Safemoon', (accounts) => {
     const pairSafemoonBalance1 = await balanceOf(SafemoonInstance, PairAddress);
     const contractSafemoonBalance1 = await balanceOf(SafemoonInstance, SafemoonAddress);
 
-    assert.equal((pairSafemoonBalance1 - pairSafemoonBalance0).toString(), numToAddliquidity);
-    assert.equal((contractSafemoonBalance0 - contractSafemoonBalance1).toString(), numToAddliquidity);
+    assert.equal((pairSafemoonBalance1 - pairSafemoonBalance0).toString(), numToAddliquidity, "inadequate addLiquidity()");
+    assert.equal((contractSafemoonBalance0 - contractSafemoonBalance1).toString(), numToAddliquidity, "could be taken fee when addLiquidity()");
   });
 
   it('addLiquidity() can be triggered 10 times', async () => {
@@ -151,8 +151,8 @@ contract('Safemoon', (accounts) => {
       pairSafemoonBalance1 = await balanceOf(SafemoonInstance, PairAddress);
       contractSafemoonBalance1 = await balanceOf(SafemoonInstance, SafemoonAddress);
   
-      assert.equal((pairSafemoonBalance1 - pairSafemoonBalance0).toString(), numToAddliquidity);
-      assert.equal((contractSafemoonBalance0 - contractSafemoonBalance1).toString(), numToAddliquidity);
+      assert.equal((pairSafemoonBalance1 - pairSafemoonBalance0).toString(), numToAddliquidity, "inadequate addLiquidity()");
+      assert.equal((contractSafemoonBalance0 - contractSafemoonBalance1).toString(), numToAddliquidity, "could be taken fee when addLiquidity()");
       hasWithdrawableBNB = await getBalanceBNB(SafemoonAddress) > 0;
     }
     console.log("withdrawable BNB in contract after addLiquidity(): ", hasWithdrawableBNB);
@@ -166,7 +166,7 @@ contract('Safemoon', (accounts) => {
     await web3.eth.sendTransaction({from: sender, to: SafemoonAddress, value: toWei('10')});
     const senderBNB1 = await getBalanceBNB(sender);
     const contractBNB1 = await getBalanceBNB(SafemoonAddress);
-    assert.equal(fromWeiToFinney((contractBNB1 - contractBNB0).toString()), '10');
+    assert.equal(fromWeiToFinney((contractBNB1 - contractBNB0).toString()), '10', "contract doesn't receive 10 BNB");
   });
 
   // for burnfee, only test if any token is burned
