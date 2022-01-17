@@ -7,7 +7,7 @@ const Web3 = require('web3');
 const rpcURL = "http://127.0.0.1:8545";
 const web3 = new Web3(rpcURL);
 
-
+// We treat the deployer and address(this) are excluded from fees
 contract('Safemoon', (accounts) => {
   let SafemoonInstance;
   let PancakeRouterInstance;
@@ -17,10 +17,37 @@ contract('Safemoon', (accounts) => {
   let PairAddress;
   let WBNBAddress;
 
-  const reflectFeeRate = 5;
-  const liquidityFeeRate = 5;
-  const marketingFeeRate = 0;
-  const burnFeeRate = 0;
+  let reflectFeeRate;
+  let liquidityFeeRate;
+  let marketingFeeRate;
+  let burnFeeRate;
+
+  // Fees need to be changed
+  // transfer Standard Fees
+  const standardReflectFeeRate = 5;
+  const standardLiquidityFeeRate = 5;
+  const standardMarketingFeeRate = 0;
+  const standardBurnFeeRate = 0;
+  
+  //separate buy Fees
+  const hasSeparateBuyFees = false;  // true if contract has separate buy fees, and change the following values if true
+  const buyReflectFeeRate = 0;
+  const buyLiquidityFeeRate = 0;
+  const buyMarketingFeeRate = 0;
+  const buyBurnFeeRate = 0;
+
+  //separate sell Fees
+  const hasSeparateSellFees = false;  // true if contract has separate sell fees, and change the following values if true
+  const sellReflectFeeRate = 0;
+  const sellLiquidityFeeRate = 0;
+  const sellMarketingFeeRate = 0;
+  const sellBurnFeeRate = 0;
+
+  // situation to trigger addLiquidity, any kind of transfer can trigger addLiquidity() by default
+  const onlyBuyToTriggerAddLiquidity = false;  // true if only buying tokens can trigger addLiquidity()
+  const onlySellToTriggerAddLiquidity = false;  // true if only selling tokens can trigger addLiuqidity()
+
+
   
   const numToAddliquidityinFinney = 500000; // min number to add liquidity in BNB/ETH (update it to match the contract)
   let numToAddliquidity;
@@ -45,7 +72,7 @@ contract('Safemoon', (accounts) => {
       .send({ from: deployer, value: toWei('500'), gas: 1200000000 }); // add LiquidityETH 500 BNB / 5000 Safemoon
   });
 
-  it('single transaction succeed', async () => {
+  it('standard transaction succeed', async () => {
     await SafemoonInstance.methods.transfer(accounts[2], toWei('100'))
       .send({from: deployer, gas: 1200000000});
     await SafemoonInstance.methods.transfer(accounts[4], toWei('100'))
@@ -56,7 +83,7 @@ contract('Safemoon', (accounts) => {
     const holderContractSafemoonBalance0 = await balanceOf(SafemoonInstance, accounts[4]); 
     const contractSafemoonBalance0 = await balanceOf(SafemoonInstance, SafemoonAddress);
 
-    // trigger auto addLiquidity
+    // trigger auto addLiquidity()
     await SafemoonInstance.methods.transfer(accounts[3], toWei('100'))
       .send({from: accounts[2], gas: 1200000000});
     
@@ -72,7 +99,7 @@ contract('Safemoon', (accounts) => {
     assert.ok((holderContractSafemoonBalance0 < holderContractSafemoonBalance1),'holder doesnt receive reflection');//check reflect
   });
 
-  it('Token transfer succeed for 100 times', async () => {
+  it('standard transfer succeed for 100 times', async () => {
     await SafemoonInstance.methods.transfer(accounts[2], toWei('100'))
       .send({from: deployer, gas: 1200000000});
     await SafemoonInstance.methods.transfer(accounts[4], toWei('100'))
@@ -187,13 +214,23 @@ contract('Safemoon', (accounts) => {
     await PancakeRouterInstance.methods.swapETHForExactTokens(toWei(BuyTokenNumberinFinney.toString()), path, buyer, 2639271011)
       .send({from: buyer, value: toWei('1000'), gas: 12000000});
 
+    if (hasSeparateBuyFees) {
+      liquidityFeeRate = buyLiquidityFeeRate;
+      marketingFeeRate = buyMarketingFeeRate;
+      burnFeeRate = buyBurnFeeRate;
+    } else {
+      liquidityFeeRate = standardLiquidityFeeRate;
+      marketingFeeRate = standardMarketingFeeRate;
+      burnFeeRate = standardBurnFeeRate;
+    }
+
     const liquidityFeeinFinney = BuyTokenNumberinFinney * liquidityFeeRate / 100;
     const marketingFeeinFinney = BuyTokenNumberinFinney * marketingFeeRate / 100;
     const burnFeeinFinney = BuyTokenNumberinFinney * burnFeeRate / 100;
 
-     // burnFee
+     // reflectFee
     const otherOneBalance1 = await balanceOf(SafemoonInstance, otherOne);
-    assert.ok(otherOneBalance1 > otherOneBalance0, "no burn fee!");
+    assert.ok(otherOneBalance1 > otherOneBalance0, "no reflect!");
 
     const contractBalance1 = await balanceOf(SafemoonInstance, SafemoonAddress);
 
@@ -203,50 +240,61 @@ contract('Safemoon', (accounts) => {
                             'liquidity fees and marketing fees do not go to contract');
   });
 
-  // it('Sell tokens to Router', async () => {
-  //   const seller = accounts[1];
-  //   const otherOne = accounts[2];
+  it('Sell tokens to Router', async () => {
+    const seller = accounts[1];
+    const otherOne = accounts[2];
 
-  //   // transfer tokens to otherOne
-  //   await SafemoonInstance.methods.transfer(otherOne, numToAddliquidity)
-  //     .send({from: deployer, gas: 1200000000});
-  //   const otherOneBalance0 = await balanceOf(SafemoonInstance, otherOne);
+    // transfer tokens to otherOne
+    await SafemoonInstance.methods.transfer(otherOne, numToAddliquidity)
+      .send({from: deployer, gas: 1200000000});
+    const otherOneBalance0 = await balanceOf(SafemoonInstance, otherOne);
 
-  //   // transfer tokens to seller
-  //   await SafemoonInstance.methods.transfer(seller, numToAddliquidity)
-  //     .send({from: deployer, gas: 1200000000});
+    // transfer tokens to seller
+    await SafemoonInstance.methods.transfer(seller, numToAddliquidity)
+      .send({from: deployer, gas: 1200000000});
+    await SafemoonInstance.methods.transfer(seller, numToAddliquidity)
+      .send({from: deployer, gas: 1200000000});
 
-  //   const contractBalance0 = await balanceOf(SafemoonInstance, SafemoonAddress);
+    const contractBalance0 = await balanceOf(SafemoonInstance, SafemoonAddress);
 
-  //   //sell tokens
-  //   const sellTokenNumberinFinney = numToAddliquidityinFinney * 1000 / 10;
-  //   const sellTokenNumberPlusOne = toFinney((sellTokenNumberinFinney / 10).toString()) + '1';  // avoid error: revert Pancake: K
-  //   await SafemoonInstance.methods.approve(PancakeRouterAddress, toWei('100000000')).send({from: seller});
-  //   let path = new Array(SafemoonAddress, WBNBAddress);
-  //   await PancakeRouterInstance.methods.swapExactTokensForETH(sellTokenNumberPlusOne, 0, path, seller, 2639271011)
-  //     .send({from: seller, gas: 12000000});
+    //sell tokens
+    const sellTokenNumberinFinney = numToAddliquidityinFinney;
+    // const sellTokenNumberPlusOne = toWei((sellTokenNumberinFinney / 10).toString()) + '1';  // avoid error: revert Pancake: K
+    await SafemoonInstance.methods.approve(PancakeRouterAddress, toWei('1000000000000000')).send({from: seller});
+    const path = new Array(SafemoonAddress, WBNBAddress);
+    // await PancakeRouterInstance.methods.swapExactTokensForETHSupportingFeeOnTransferTokens(sellTokenNumberPlusOne, 0, path, seller, 2639271011)
+    //   .send({from: seller, gas: 12000000});
+    // await PancakeRouterInstance.methods.swapExactTokensForETH(toWei(sellTokenNumberinFinney.toString()), 0, path, seller, 2639271011)
+    //   .send({from: seller, gas: 12000000});
+    await PancakeRouterInstance.methods.swapExactTokensForETHSupportingFeeOnTransferTokens(toWei(sellTokenNumberinFinney.toString()), 0, path, seller, 2639271011)
+      .send({from: seller, gas: 12000000});
 
-  //   // sell feeRates to update
-  //   const liquidityFeeRate = 5;
-  //   const marketingFeeRate = 0;
-  //   // const burnFeeRate = 5;
+    if (hasSeparateSellFees) {
+      liquidityFeeRate = sellLiquidityFeeRate;
+      marketingFeeRate = sellMarketingFeeRate;
+      burnFeeRate = sellBurnFeeRate;
+    } else {
+      liquidityFeeRate = standardLiquidityFeeRate;
+      marketingFeeRate = standardMarketingFeeRate;
+      burnFeeRate = standardBurnFeeRate;
+    }
 
-  //   const liquidityFeeinFinney = sellTokenNumberinBNB * 1000 * liquidityFeeRate / 100;
-  //   const marketingFeeinFinney = sellTokenNumberinBNB * 1000 * marketingFeeRate / 100;
-  //   // const burnFeeinBNB = sellTokenNumberinBNB * burnFeeRate / 100;
+    const liquidityFeeinFinney = sellTokenNumberinFinney * liquidityFeeRate / 100;
+    const marketingFeeinFinney = sellTokenNumberinFinney * marketingFeeRate / 100;
+    // const burnFeeinBNB = sellTokenNumberinFinney * burnFeeRate / 100;
 
-  //    // burnFee
-  //   const otherOneBalance1 = await balanceOf(SafemoonInstance, otherOne);
-  //   assert.ok(otherOneBalance1 > otherOneBalance0, "no burn fee!");
+     // burnFee
+    const otherOneBalance1 = await balanceOf(SafemoonInstance, otherOne);
+    assert.ok(otherOneBalance1 > otherOneBalance0, "no burn fee!");
 
-  //   const contractBalance1 = await balanceOf(SafemoonInstance, SafemoonAddress);
+    const contractBalance1 = await balanceOf(SafemoonInstance, SafemoonAddress);
 
-  //   // test addLiquidityFee
-  //   assert.equal(Math.floor(fromWeiToSzabo((contractBalance1 - contractBalance0).toString())),
-  //                           liquidityFeeinFinney + marketingFeeinFinney, 
-  //                           'liquidity fees and marketing fees do not go to contract');
+    // test addLiquidityFee
+    assert.equal(Math.floor(fromWei((contractBalance1 - contractBalance0).toString())),
+                            liquidityFeeinFinney + marketingFeeinFinney, 
+                            'liquidity fees and marketing fees do not go to contract');
 
-  // });
+  });
 
 });
 
@@ -264,14 +312,10 @@ const toWei = (numString) => {
   return web3.utils.toWei(numString, 'finney');
 }
 
-const fromWeiToSzabo = (numString) => {
-  return web3.utils.fromWei(numString, 'szabo');
+const fromWei = (numString) => {
+  return web3.utils.fromWei(numString, 'finney');
 }
 
 const fromWeiToFinney = (numString) => {
   return web3.utils.fromWei(numString, 'finney');
-}
-
-const toFinney = (numString) => {
-  return web3.utils.toWei(numString, 'finney');
 }
