@@ -154,80 +154,102 @@ contract('Safemoon', (accounts) => {
 
   it('trigger addliquidity() automatically once', async () => {
     const anyAccount = accounts[6];
-    await SafemoonInstance.methods.transfer(anyAccount, 10**6)
-      .send({from: deployer, gas: 1200000000});
 
     await SafemoonInstance.methods.transfer(SafemoonAddress, toWei(numToAddliquidityinFinney.toString()))
       .send({from: deployer, gas: 1200000000});
     
     // balances before auto addLiquidity 
-    pairSafemoonBalance0 = await balanceOf(SafemoonInstance, PairAddress);
-    contractSafemoonBalance0 = await balanceOf(SafemoonInstance, SafemoonAddress);
+    const pairSafemoonBalance0 = await balanceOf(SafemoonInstance, PairAddress);
+    let contractSafemoonBalance = await balanceOf(SafemoonInstance, SafemoonAddress);
+    let s0 = contractSafemoonBalance;
+    let s2 = numToAddliquidity;
+
+    assert.ok(s0.length == s2.length && s0.substring(0, 2) == s2.substring(0, 2), "deployer is not excluded from fees")
+
+    await SafemoonInstance.methods.transfer(anyAccount, 10**6)
+        .send({from: deployer, gas: 1200000000});
 
     await SafemoonInstance.methods.approve(PancakeRouterAddress, toWei('100000')).send({from: anyAccount}); // approve
     // trigger auto addLiquidity when sell/standard transfer
     if (onlySellToTriggerAddLiquidity) {
+      await SafemoonInstance.methods.transfer(accounts[1], 10**5)
+        .send({from: anyAccount, gas: 1200000000});
+      const contractSafemoonBalance2 = await balanceOf(SafemoonInstance, SafemoonAddress);
+      assert.ok(contractSafemoonBalance2 - contractSafemoonBalance0 > 10**5, "standard transfer triggers addLiquidity(), check if onlySellToTriggerAddLiquidity should be false")
+
       const path = new Array(SafemoonAddress, WBNBAddress);
       await PancakeRouterInstance.methods.swapExactTokensForETHSupportingFeeOnTransferTokens(10**5, 0, path, anyAccount, 2639271011)
         .send({from: anyAccount, gas: 12000000});
     } else {
-      await SafemoonInstance.methods.transfer(accounts[1], 500)
+      await SafemoonInstance.methods.transfer(accounts[1], 10**5)
         .send({from: anyAccount, gas: 1200000000});
     }
     
-    pairSafemoonBalance1 = await balanceOf(SafemoonInstance, PairAddress);
-    contractSafemoonBalance1 = await balanceOf(SafemoonInstance, SafemoonAddress);
+    const pairSafemoonBalance1 = await balanceOf(SafemoonInstance, PairAddress);
+    s0 = pairSafemoonBalance0;
+    let s1 = pairSafemoonBalance1;
+    assert.ok(s1.length > s0.length || s1.substring(0, 2) > s0.substring(0, 2), "addLiquidity() has not been triggered")
+    if (s1.length > s0.length) {
+        assert.equal(s1.substring(0, 6) - s0.substring(0, 5), s2.substring(0, 5) * (100 - walletFee) / 100, "the amount of tokens added to the pool is not enough")
+    } else if (s0.length == s2.length) {
+        assert.equal(s1.substring(0, 5) - s0.substring(0, 5), s2.substring(0, 5) * (100 - walletFee) / 100, "the amount of tokens added to the pool is not enough");
+    } else {
+        assert.equal(s1.substring(0, 5) - s0.substring(0, 5), s2.substring(0, 4) * (100 - walletFee) / 100, "the amount of tokens added to the pool is not enough");
+    }
 
-    const deltaPairBalance = substringToNumber(pairSafemoonBalance1, 8) - substringToNumber(pairSafemoonBalance0, 8);
-    const deltaContractBalance = (contractSafemoonBalance0 - contractSafemoonBalance1).toString();
-
-    assert.ok(deltaPairBalance >=0 && deltaPairBalance <= 10**5, "inadequate addLiquidity()");
-    assert.equal(deltaContractBalance, numToAddliquidity, "could be taken fee when addLiquidity()");
+    contractSafemoonBalance = await balanceOf(SafemoonInstance, SafemoonAddress);
+    assert.ok(contractSafemoonBalance <= 10**5, "could be taken fee when addLiquidity()");
   });
 
   it('trigger addliquidity() automatically 10 times', async () => {
-    const anyAccount = accounts[5];
-    await SafemoonInstance.methods.transfer(anyAccount, 10**6)
-      .send({from: deployer, gas: 1200000000});
+    const anyAccount = accounts[6];
 
-    await SafemoonInstance.methods.transfer(SafemoonAddress, toWei((15 * numToAddliquidityinFinney).toString()))
-      .send({from: deployer, gas: 1200000000});
-
-    // balances before each addLiquidity()
-    let pairSafemoonBalance0;
-    let contractSafemoonBalance0;
-    // balances after each addLiquidity()
-    let pairSafemoonBalance1;
-    let contractSafemoonBalance1;
-
-    let hasWithdrawableBNB;
-
-    await SafemoonInstance.methods.approve(PancakeRouterAddress, toWei('100000')).send({from: anyAccount}); // approve
     for (let i = 0; i < 10; i++) {
-      pairSafemoonBalance0 = await balanceOf(SafemoonInstance, PairAddress);
-      contractSafemoonBalance0 = await balanceOf(SafemoonInstance, SafemoonAddress);
-  
-      // trigger auto addLiquidity when sell/standard transfer
-      if (onlySellToTriggerAddLiquidity) {
+      await SafemoonInstance.methods.transfer(SafemoonAddress, toWei(numToAddliquidityinFinney.toString()))
+        .send({from: deployer, gas: 1200000000});
+        
+        // balances before auto addLiquidity 
+        const pairSafemoonBalance0 = await balanceOf(SafemoonInstance, PairAddress);
+        let contractSafemoonBalance = await balanceOf(SafemoonInstance, SafemoonAddress);
+        let s0 = contractSafemoonBalance;
+        let s2 = numToAddliquidity;
+
+        assert.ok(s0.length == s2.length && s0.substring(0, 2) == s2.substring(0, 2), "deployer is not excluded from fees")
+
+        await SafemoonInstance.methods.transfer(anyAccount, 10**6)
+            .send({from: deployer, gas: 1200000000});
+
+        await SafemoonInstance.methods.approve(PancakeRouterAddress, toWei('100000')).send({from: anyAccount}); // approve
+        // trigger auto addLiquidity when sell/standard transfer
+        if (onlySellToTriggerAddLiquidity) {
+        await SafemoonInstance.methods.transfer(accounts[1], 10**5)
+            .send({from: anyAccount, gas: 1200000000});
+        const contractSafemoonBalance2 = await balanceOf(SafemoonInstance, SafemoonAddress);
+        assert.ok(contractSafemoonBalance2 - contractSafemoonBalance0 > 10**5, "standard transfer triggers addLiquidity(), check if onlySellToTriggerAddLiquidity should be false")
+
         const path = new Array(SafemoonAddress, WBNBAddress);
         await PancakeRouterInstance.methods.swapExactTokensForETHSupportingFeeOnTransferTokens(10**5, 0, path, anyAccount, 2639271011)
-          .send({from: anyAccount, gas: 12000000});
-      } else {
-        await SafemoonInstance.methods.transfer(accounts[1], 500)
-          .send({from: anyAccount, gas: 1200000000});
-      }
-      
-      pairSafemoonBalance1 = await balanceOf(SafemoonInstance, PairAddress);
-      contractSafemoonBalance1 = await balanceOf(SafemoonInstance, SafemoonAddress);
-  
-      const deltaPairBalance = substringToNumber(pairSafemoonBalance1, 8) - substringToNumber(pairSafemoonBalance0, 8);
-      const deltaContractBalance = (contractSafemoonBalance0 - contractSafemoonBalance1).toString();
+            .send({from: anyAccount, gas: 12000000});
+        } else {
+        await SafemoonInstance.methods.transfer(accounts[1], 10**5)
+            .send({from: anyAccount, gas: 1200000000});
+        }
+        
+        const pairSafemoonBalance1 = await balanceOf(SafemoonInstance, PairAddress);
+        s0 = pairSafemoonBalance0;
+        let s1 = pairSafemoonBalance1;
+        assert.ok(s1.length > s0.length || s1.substring(0, 2) > s0.substring(0, 2), "addLiquidity() has not been triggered")
+        if (s1.length > s0.length) {
+            assert.equal(s1.substring(0, 6) - s0.substring(0, 5), s2.substring(0, 5) * (100 - walletFee) / 100, "the amount of tokens added to the pool is not enough")
+        } else if (s0.length == s2.length) {
+            assert.equal(s1.substring(0, 5) - s0.substring(0, 5), s2.substring(0, 5) * (100 - walletFee) / 100, "the amount of tokens added to the pool is not enough");
+        } else {
+            assert.equal(s1.substring(0, 5) - s0.substring(0, 5), s2.substring(0, 4) * (100 - walletFee) / 100, "the amount of tokens added to the pool is not enough");
+        }
 
-      assert.ok(deltaPairBalance >=0 && deltaPairBalance <= 10**5, "inadequate addLiquidity()");
-      assert.equal(deltaContractBalance, numToAddliquidity, "could be taken fee when addLiquidity()");
-      hasWithdrawableBNB = await getBalanceBNB(SafemoonAddress) > 0;
+        contractSafemoonBalance = await balanceOf(SafemoonInstance, SafemoonAddress);
+        assert.ok(contractSafemoonBalance <= 10**5, "could be taken fee when addLiquidity()");
     }
-    console.log("withdrawable BNB in contract after addLiquidity(): ", hasWithdrawableBNB);
   });
 
   it('Contract can receive BNB', async () => {
