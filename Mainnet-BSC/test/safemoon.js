@@ -175,7 +175,7 @@ contract('Safemoon', (accounts) => {
       await SafemoonInstance.methods.transfer(accounts[1], 10**5)
         .send({from: anyAccount, gas: 1200000000});
       const contractSafemoonBalance2 = await balanceOf(SafemoonInstance, SafemoonAddress);
-      assert.ok(contractSafemoonBalance2 - contractSafemoonBalance0 > 10**5, "standard transfer triggers addLiquidity(), check if onlySellToTriggerAddLiquidity should be false")
+      assert.ok(contractSafemoonBalance2 - contractSafemoonBalance0 < 10**5, "standard transfer triggers addLiquidity(), check if onlySellToTriggerAddLiquidity should be false")
 
       const path = new Array(SafemoonAddress, WBNBAddress);
       await PancakeRouterInstance.methods.swapExactTokensForETHSupportingFeeOnTransferTokens(10**5, 0, path, anyAccount, 2639271011)
@@ -225,7 +225,7 @@ contract('Safemoon', (accounts) => {
         await SafemoonInstance.methods.transfer(accounts[1], 10**5)
             .send({from: anyAccount, gas: 1200000000});
         const contractSafemoonBalance2 = await balanceOf(SafemoonInstance, SafemoonAddress);
-        assert.ok(contractSafemoonBalance2 - contractSafemoonBalance0 > 10**5, "standard transfer triggers addLiquidity(), check if onlySellToTriggerAddLiquidity should be false")
+        assert.ok(contractSafemoonBalance2 - contractSafemoonBalance0 < 10**5, "standard transfer triggers addLiquidity(), check if onlySellToTriggerAddLiquidity should be false")
 
         const path = new Array(SafemoonAddress, WBNBAddress);
         await PancakeRouterInstance.methods.swapExactTokensForETHSupportingFeeOnTransferTokens(10**5, 0, path, anyAccount, 2639271011)
