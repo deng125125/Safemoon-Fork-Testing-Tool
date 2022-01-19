@@ -263,7 +263,7 @@ contract('Safemoon', (accounts) => {
     assert.equal(fromWei((contractBNB1 - contractBNB0).toString()), '10', "contract doesn't receive 10 BNB");
   });
 
-  // for burnfee, only test if any token is burned
+  // for reflect fee, only test if _rtotal shrinks
   it('Buy tokens from Router', async () => {
     const buyer = accounts[1];
     const otherOne = accounts[2];
@@ -337,9 +337,9 @@ contract('Safemoon', (accounts) => {
     const marketingFeeinFinney = sellTokenNumberinFinney * marketingFeeRate / 100;
     // const burnFeeinBNB = sellTokenNumberinFinney * burnFeeRate / 100;
 
-     // burnFee
+     // reflectFee
     const otherOneBalance1 = await balanceOf(SafemoonInstance, otherOne);
-    assert.ok(otherOneBalance1 > otherOneBalance0, "no burn fee!");
+    assert.ok(otherOneBalance1 > otherOneBalance0, "no reflect!");
 
     const contractBalance1 = await balanceOf(SafemoonInstance, SafemoonAddress);
 
