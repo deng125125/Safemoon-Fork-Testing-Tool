@@ -299,8 +299,8 @@ contract('Safemoon', (accounts) => {
 
     // test addLiquidityFee
     assert.equal(Math.floor(fromWei((contractBalance1 - contractBalance0).toString())),
-                            liquidityFeeinFinney + marketingFeeinFinney, 
-                            'liquidity fees and marketing fees do not go to contract');
+                            liquidityFeeinFinney, 
+                            'MarketingFee also sent to the contract when buy or liquidityFee are not charged correctly');
   });
 
   it('Sell tokens to Router', async () => {
@@ -345,8 +345,8 @@ contract('Safemoon', (accounts) => {
 
     // test addLiquidityFee
     assert.equal(Math.floor(fromWei((contractBalance1 - contractBalance0).toString())),
-                            liquidityFeeinFinney + marketingFeeinFinney, 
-                            'liquidity fees and marketing fees do not go to contract');
+                            liquidityFeeinFinney, 
+                            'Marketing fee also sent to the contract when sell or liquidityFee not charged correctly');
 
   });
 
