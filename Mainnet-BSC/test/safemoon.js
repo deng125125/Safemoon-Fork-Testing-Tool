@@ -17,7 +17,7 @@ contract('Safemoon', (accounts) => {
   let PairAddress;
   let WBNBAddress;
 
-  // Note: Modify the following values
+  // Note: Modify the following values (line 22- 52)
 
   // fees to be charged when addLiquidity(), 0 for most projects
   let walletFee = 0;
@@ -52,7 +52,7 @@ contract('Safemoon', (accounts) => {
   const numToAddliquidityinFinney = 500000;   // 500000 finney == 500 ether
 
 
-  let numToAddliquidity;
+  let numToAddliquidity; // no need to change it
   
   beforeEach(async () => {
     SafemoonInstance = await new web3.eth.Contract(compiledSafemoon.abi)
