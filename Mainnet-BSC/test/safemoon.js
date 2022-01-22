@@ -47,8 +47,8 @@ contract('Safemoon', (accounts) => {
   // true if only selling tokens can trigger addLiuqidity()
   const onlySellToTriggerAddLiquidity = false;  
 
-  // min number to add liquidity in BNB/ETH (update it to match the contract)
-  const numToAddliquidityinFinney = 500000; 
+  // min number to add liquidity in BNB/ETH (in finney, 1 ether == 1000 finney)
+  const numToAddliquidityinFinney = 500000;   // 500000 finney == 500 ether
 
 
   let numToAddliquidity;
