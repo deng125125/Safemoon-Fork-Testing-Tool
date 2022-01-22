@@ -17,9 +17,7 @@ contract('Safemoon', (accounts) => {
   let PairAddress;
   let WBNBAddress;
 
-
-
-  // Note: Modify the values from line 24 - line 51!!!!
+  // Note: Modify the following values
 
   // fees to be charged when addLiquidity(), 0 for most projects
   let walletFee = 0;
@@ -29,6 +27,7 @@ contract('Safemoon', (accounts) => {
   let liquidityFeeRate = 5;
   let marketingFeeRate = 0;
   let burnFeeRate = 0;
+  let buyBackFeeRate = 0;
   
   //separate buy Fees
   const hasSeparateBuyFees = false;  // true if contract has separate buy fees, and change the following values if true
@@ -36,6 +35,7 @@ contract('Safemoon', (accounts) => {
   const buyLiquidityFeeRate = 0;
   const buyMarketingFeeRate = 0;
   const buyBurnFeeRate = 0;
+  const buyBuyBackFeeRate = 0;
 
   //separate sell Fees
   const hasSeparateSellFees = false;  // true if contract has separate sell fees, and change the following values if true
@@ -43,6 +43,7 @@ contract('Safemoon', (accounts) => {
   const sellLiquidityFeeRate = 0;
   const sellMarketingFeeRate = 0;
   const sellBurnFeeRate = 0;
+  const sellBuyBackFeeRate = 0;
 
   // true if only selling tokens can trigger addLiuqidity()
   const onlySellToTriggerAddLiquidity = false;  
@@ -263,7 +264,6 @@ contract('Safemoon', (accounts) => {
     assert.equal(fromWei((contractBNB1 - contractBNB0).toString()), '10', "contract doesn't receive 10 BNB");
   });
 
-  // for reflect fee, only test if _rtotal shrinks
   it('Buy tokens from Router', async () => {
     const buyer = accounts[1];
     const otherOne = accounts[2];
@@ -274,6 +274,7 @@ contract('Safemoon', (accounts) => {
     const otherOneBalance0 = await balanceOf(SafemoonInstance, otherOne);
     
     const contractBalance0 = await balanceOf(SafemoonInstance, SafemoonAddress);
+    const buyerBalance0 = await balanceOf(SafemoonInstance, buyer);
 
     // buy tokens
     const BuyTokenNumberinFinney = numToAddliquidityinFinney / 10;
@@ -282,25 +283,37 @@ contract('Safemoon', (accounts) => {
       .send({from: buyer, value: toWei('1000'), gas: 12000000});
 
     if (hasSeparateBuyFees) {
+      reflectFeeRate = buyReflectFeeRate;
       liquidityFeeRate = buyLiquidityFeeRate;
       marketingFeeRate = buyMarketingFeeRate;
       burnFeeRate = buyBurnFeeRate;
+      buyBackFeeRate = buyBuyBackFeeRate;
     }
 
+    const reflectFeeinFinney = BuyTokenNumberinFinney * reflectFeeRate / 100;
     const liquidityFeeinFinney = BuyTokenNumberinFinney * liquidityFeeRate / 100;
     const marketingFeeinFinney = BuyTokenNumberinFinney * marketingFeeRate / 100;
     const burnFeeinFinney = BuyTokenNumberinFinney * burnFeeRate / 100;
+    const buyBackFeeinFinney = BuyTokenNumberinFinney * buyBackFeeRate / 100;
+    const sumFeeinFinney = reflectFeeinFinney + liquidityFeeinFinney + marketingFeeinFinney + burnFeeinFinney + buyBackFeeinFinney;
 
      // reflectFee
     const otherOneBalance1 = await balanceOf(SafemoonInstance, otherOne);
     assert.ok(otherOneBalance1 > otherOneBalance0, "no reflect!");
 
     const contractBalance1 = await balanceOf(SafemoonInstance, SafemoonAddress);
+    const buyerBalance1 = await balanceOf(SafemoonInstance, buyer);
+
+    // because of reflect fees and Swap fees, only test if they are roughly equal
+    const deltabuyerBalance = buyerBalance1 - buyerBalance0;
+    const shouldReceiveTokens = toWei((BuyTokenNumberinFinney - sumFeeinFinney).toString());
+    const delta = Math.abs(deltabuyerBalance - shouldReceiveTokens);
+    assert.ok(delta * 100 / shouldReceiveTokens < 1, "pair doesn't get enough tokens");
 
     // test addLiquidityFee
     assert.equal(Math.floor(fromWei((contractBalance1 - contractBalance0).toString())),
                             liquidityFeeinFinney, 
-                            'MarketingFee also sent to the contract when buy or liquidityFee are not charged correctly');
+                            'Marketing fee also sent to the contract when sell or liquidityFee not charged correctly');
   });
 
   it('Sell tokens to Router', async () => {
@@ -319,6 +332,7 @@ contract('Safemoon', (accounts) => {
       .send({from: deployer, gas: 1200000000});
 
     const contractBalance0 = await balanceOf(SafemoonInstance, SafemoonAddress);
+    const pairBalance0 =  await balanceOf(SafemoonInstance, PairAddress);
 
     //sell tokens
     const sellTokenNumberinFinney = numToAddliquidityinFinney;
@@ -328,27 +342,39 @@ contract('Safemoon', (accounts) => {
       .send({from: seller, gas: 12000000});
 
     if (hasSeparateSellFees) {
+      reflectFeeRate = sellReflectFeeRate;
       liquidityFeeRate = sellLiquidityFeeRate;
       marketingFeeRate = sellMarketingFeeRate;
       burnFeeRate = sellBurnFeeRate;
+      buyBackFeeRate = sellBuyBackFeeRate;
     }
 
+    const reflectFeeinFinney = sellTokenNumberinFinney * reflectFeeRate / 100;
     const liquidityFeeinFinney = sellTokenNumberinFinney * liquidityFeeRate / 100;
     const marketingFeeinFinney = sellTokenNumberinFinney * marketingFeeRate / 100;
-    // const burnFeeinBNB = sellTokenNumberinFinney * burnFeeRate / 100;
+    const burnFeeinBNB = sellTokenNumberinFinney * burnFeeRate / 100;
+    const buyBackFeeinFinney = sellTokenNumberinFinney * buyBackFeeRate / 100;
+    const sumFeeinFinney = reflectFeeinFinney + liquidityFeeinFinney + marketingFeeinFinney + burnFeeinBNB + buyBackFeeinFinney;
 
      // reflectFee
     const otherOneBalance1 = await balanceOf(SafemoonInstance, otherOne);
     assert.ok(otherOneBalance1 > otherOneBalance0, "no reflect!");
 
     const contractBalance1 = await balanceOf(SafemoonInstance, SafemoonAddress);
+    const pairBalance1 =  await balanceOf(SafemoonInstance, PairAddress);
 
+    // because of reflect fees and Swap fees, only test if they are roughly equal
+    const deltaPairBalance = pairBalance1 - pairBalance0;
+    const shouldAddToPairTokens = toWei((sellTokenNumberinFinney - sumFeeinFinney).toString());
+    const delta = Math.abs(deltaPairBalance - shouldAddToPairTokens);
+    assert.ok(delta * 100 / shouldAddToPairTokens < 1, "pair doesn't get enough tokens");
+    
     // test addLiquidityFee
     assert.equal(Math.floor(fromWei((contractBalance1 - contractBalance0).toString())),
                             liquidityFeeinFinney, 
                             'Marketing fee also sent to the contract when sell or liquidityFee not charged correctly');
-
   });
+
 
 });
 
