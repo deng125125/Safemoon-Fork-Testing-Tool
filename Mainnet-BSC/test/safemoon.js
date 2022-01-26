@@ -52,7 +52,7 @@ contract('Safemoon', (accounts) => {
   const numToAddliquidityinFinney = 500000;   // 500000 finney == 500 ether
 
 
-  let numToAddliquidity; // no need to change it
+  let numToAddliquidity; // dont change it
   
   beforeEach(async () => {
     SafemoonInstance = await new web3.eth.Contract(compiledSafemoon.abi)
@@ -75,18 +75,19 @@ contract('Safemoon', (accounts) => {
   });
 
   it('values of parameters are legal', async () => {
-    assert.ok(!(reflectFeeRate == 0 && liquidityFeeRate == 0 && marketingFeeRate == 0 && burnFeeRate == 0),
-              "check parameters setting for standard transfer fees at line 28 - 31" 
+    assert.ok(!(reflectFeeRate == 0), "reflect fee is require")
+    assert.ok(!(reflectFeeRate == 0 && liquidityFeeRate == 0 && marketingFeeRate == 0 && burnFeeRate == 0 && buyBackFeeRate == 0),
+              "check parameters setting for standard transfer fees" 
               );
 
     assert.ok(!hasSeparateBuyFees ||
-              !(buyReflectFeeRate == 0 && buyLiquidityFeeRate == 0 && buyMarketingFeeRate == 0 && buyBurnFeeRate == 0),
-              "check parameters setting for buy fees at line 34 - 38"
+              !(buyReflectFeeRate == 0 && buyLiquidityFeeRate == 0 && buyMarketingFeeRate == 0 && buyBurnFeeRate == 0 && buyBuyBackFeeRate == 0),
+              "check parameters setting for buy fees"
               );
     
     assert.ok(!hasSeparateSellFees ||
-              !(sellReflectFeeRate == 0 && sellLiquidityFeeRate == 0 && sellMarketingFeeRate == 0 && sellBurnFeeRate == 0),
-              "check parameters setting for sell fees at line 41 - 45"
+              !(sellReflectFeeRate == 0 && sellLiquidityFeeRate == 0 && sellMarketingFeeRate == 0 && sellBurnFeeRate == 0 && sellBuyBackFeeRate == 0),
+              "check parameters setting for sell fees"
               );
   });
 
@@ -112,7 +113,7 @@ contract('Safemoon', (accounts) => {
     const contractSafemoonBalance1 = await balanceOf(SafemoonInstance, SafemoonAddress);
 
     assert.equal(senderContractSafemoonBalance1, 0, "taxes are not correctly deducted from sender");//taxes are correctly deducted from sender
-    assert.ok(fromWei((receiverContractSafemoonBalance1 - receiverContractSafemoonBalance0).toString()) > (100 - reflectFeeRate - liquidityFeeRate - marketingFeeRate - burnFeeRate).toString(),'receiver doesnt get enough fund from tx');//receiver 
+    assert.ok(fromWei((receiverContractSafemoonBalance1 - receiverContractSafemoonBalance0).toString()) > (100 - reflectFeeRate - liquidityFeeRate - marketingFeeRate - burnFeeRate - buyBackFeeRate).toString(),'receiver doesnt get enough fund from tx');//receiver 
     assert.ok(fromWei((contractSafemoonBalance1 - contractSafemoonBalance0).toString()) >= liquidityFeeRate.toString(),'Safemoon contract doesnt get enough liquidityFee');//take liqudity fee
     assert.ok((holderContractSafemoonBalance0 < holderContractSafemoonBalance1),'holder doesnt receive reflection');//check reflect
   });
@@ -147,7 +148,7 @@ contract('Safemoon', (accounts) => {
       contractSafemoonBalance1 = await balanceOf(SafemoonInstance, SafemoonAddress);
 
       //assert.equal(fromWei((senderContractSafemoonBalance0 - senderContractSafemoonBalance1).toString()), `1`);
-      assert.ok(fromWei(((receiverContractSafemoonBalance1 - receiverContractSafemoonBalance0) * 100).toString()) > (100 - reflectFeeRate - liquidityFeeRate - marketingFeeRate - burnFeeRate).toString(),'receiver doesnt get enough fund from tx');
+      assert.ok(fromWei(((receiverContractSafemoonBalance1 - receiverContractSafemoonBalance0) * 100).toString()) > (100 - reflectFeeRate - liquidityFeeRate - marketingFeeRate - burnFeeRate - buyBackFeeRate).toString(),'receiver doesnt get enough fund from tx');
       assert.ok(fromWei(((contractSafemoonBalance1 - contractSafemoonBalance0) * 100).toString()) >= liquidityFeeRate.toString(),'Safemoon contract doesnt get enough liquidityFee');
       assert.ok((holderContractSafemoonBalance0 < holderContractSafemoonBalance1),'holder doesnt receive reflection');
     }
