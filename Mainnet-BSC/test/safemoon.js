@@ -18,7 +18,7 @@ contract('Safemoon', (accounts) => {
     let WBNBAddress;
 
 
-  // Note: Modify the following values (line xx - xx)
+  // Note: Modify the following values (Until "beforeEach")
 
   // type of contract
   const hasDividend = false;  // is dividend paying token or not
