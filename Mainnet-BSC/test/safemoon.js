@@ -241,7 +241,7 @@ contract('Safemoon', (accounts) => {
 
     const totalFeeRates = dividendRewardFeeRate + reflectFeeRate + liquidityFeeRate + marketingFeeRate + burnFeeRate + buyBackFeeRate;
 
-    assert.equal(senderContractSafemoonBalance1, 0, "taxes are not correctly deducted from sender");//taxes are correctly deducted from sender
+    assert.equal(senderContractSafemoonBalance1, 0, "tokens are not correctly deducted from sender");//tokens are correctly deducted from sender
     assert.ok(fromWei((receiverContractSafemoonBalance1 - receiverContractSafemoonBalance0).toString()) >= (100 - totalFeeRates).toString(),'receiver doesnt get enough fund from tx');//receiver 
     assert.ok(fromWei((contractSafemoonBalance1 - contractSafemoonBalance0).toString()) >= liquidityFeeRate.toString(),'Safemoon contract doesnt get enough liquidityFee');//take liqudity fee
     
