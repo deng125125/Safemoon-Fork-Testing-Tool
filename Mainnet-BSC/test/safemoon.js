@@ -416,9 +416,9 @@ contract('Safemoon', (accounts) => {
         const reflectFeeinFinney = sellTokenNumberinFinney * _reflectFeeRate / 100;
         const liquidityFeeinFinney = sellTokenNumberinFinney * _liquidityFeeRate / 100;
         const marketingFeeinFinney = sellTokenNumberinFinney * _marketingFeeRate / 100;
-        const burnFeeinBNB = sellTokenNumberinFinney * _burnFeeRate / 100;
+        const burnFeeinFinney = sellTokenNumberinFinney * _burnFeeRate / 100;
         const buyBackFeeinFinney = sellTokenNumberinFinney * _buyBackFeeRate / 100;
-        const sumFeeinFinney = dividendRewardFeeinFinney + reflectFeeinFinney + liquidityFeeinFinney + marketingFeeinFinney + burnFeeinBNB + buyBackFeeinFinney;
+        const sumFeeinFinney = dividendRewardFeeinFinney + reflectFeeinFinney + liquidityFeeinFinney + marketingFeeinFinney + burnFeeinFinney + buyBackFeeinFinney;
     
          // reflectFee
         const otherOneBalance1 = await balanceOf(SafemoonInstance, otherOne);
